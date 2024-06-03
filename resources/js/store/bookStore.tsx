@@ -1,13 +1,22 @@
 import { makeAutoObservable, observable, runInAction } from "mobx";
 import { BookDTO } from "../classes/appClasses";
 import axios from "axios";
+import useNotifications from "@/utils/useNotifications";
+import { renderToString } from "react-dom/server";
+import {
+    Key,
+    ReactElement,
+    JSXElementConstructor,
+    ReactNode,
+    ReactPortal,
+} from "react";
 
 import.meta.env.VITE_API_URL;
 
-class ClienteStore {
+class BookStore {
     totalPages = 0;
     pageNumber = 1;
-    pageSize = 10;
+    pageSize = 5;
     book: BookDTO = {
         id: 0,
         title: "",
@@ -71,12 +80,13 @@ class ClienteStore {
     }
 
     async listarPaginado(pageNumber: number, pageSize: number): Promise<void> {
-        const url = `${import.meta.env.VITE_API_URL}/books?page=${pageNumber}&size=${pageSize}`;
+        const url = `${
+            import.meta.env.VITE_API_URL
+        }/books?page=${pageNumber}&size=${pageSize}`;
 
         await axios
             .get(url)
             .then((resp) => {
-                debugger;
                 const data = resp.data.data;
                 this.setBooks(data);
                 this.setTotalPages(resp.data.last_page);
@@ -89,6 +99,66 @@ class ClienteStore {
             .catch((error) => {
                 console.error(error);
             });
+    }
+
+    async buscarPorId(id: number): Promise<void> {
+        const url = `${import.meta.env.VITE_API_URL}/books/${id}`;
+
+        await axios
+            .get(url)
+            .then((resp) => {
+                const data = resp.data;
+                this.setBook(data);
+
+                runInAction(() => {
+                    this.setBook(data);
+                });
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }
+
+    async guardar(): Promise<void> {
+        const url = `${import.meta.env.VITE_API_URL}/books`;
+
+        try {
+            await axios.post(url, this.book);
+
+            this.limpiar();
+            await this.listarPaginado(this.pageNumber, this.pageSize);
+        } catch (error: any) {
+            const validationError: Record<string, string[]> =
+                error.response.data.errors;
+
+            const errorMessages = Object.entries(validationError).map(
+                ([field, messages]) => (
+                    <li key={field} className="border-0 text-start">
+                        {messages.join(", ")}
+                    </li>
+                )
+            );
+
+            const errorMessage = renderToString(<ul>{errorMessages}</ul>);
+
+            useNotifications("Validation error", errorMessage, "error");
+
+            throw error;
+        }
+    }
+
+    async actualizar(): Promise<void> {
+        const url = `${import.meta.env.VITE_API_URL}/books/${this.book.id}`;
+
+        try {
+            await axios.put(url, this.book);
+
+            this.limpiar();
+            await this.listarPaginado(this.pageNumber, this.pageSize);
+        } catch (error: any) {
+            useNotifications("Error", error.response.data, "error");
+            throw error;
+        }
     }
 
     async eliminar(id: number): Promise<void> {
@@ -105,5 +175,5 @@ class ClienteStore {
     }
 }
 
-const clienteStore = new ClienteStore();
-export default clienteStore;
+const bookStore = new BookStore();
+export default bookStore;

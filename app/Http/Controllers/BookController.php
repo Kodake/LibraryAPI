@@ -8,12 +8,28 @@ use Illuminate\Http\Request;
 class BookController extends Controller
 {
     /**
+     * Search for books based on various criteria.
+     */
+    public function search(Request $request)
+    {
+        $query = $request->input('query');
+    
+        $books = Book::where('title', 'LIKE', "%{$query}%")
+                     ->orWhere('author', 'LIKE', "%{$query}%")
+                     ->orWhere('publication_date', 'LIKE', "%{$query}%")
+                     ->orWhere('pages', 'LIKE', "%{$query}%")
+                     ->paginate(10);
+    
+        return response()->json($books);
+    }
+
+    /**
      * Display a listing of the books.
      */
     public function index(Request $request)
     {
         $firstPage = 1;
-        $maxSize = 10;
+        $maxSize = 5;
         
         $page = $request->query('page', $firstPage);
         $size = $request->query('size', $maxSize);

@@ -1,12 +1,12 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 import { PageProps } from "@/types";
 import useBooks from "@/hooks/useBooks";
-import store from "../store/bookStore";
+import store from "../../store/bookStore";
 import { observer } from "mobx-react";
 
-const Dashboard = ({ auth }: PageProps) => {
-    const { cargarListaPaginada, handlePageChange, handleDeleteConfirmation } = useBooks();
+const List = ({ auth }: PageProps) => {
+    const { cargarListaPaginada, handlePageChange, handleBookSelected, handleDeleteConfirmation } = useBooks();
 
     cargarListaPaginada();
 
@@ -15,20 +15,20 @@ const Dashboard = ({ auth }: PageProps) => {
             user={auth.user}
             header={
                 <h2 className="font-semibold text-xl text-gray-800 leading-tight">
-                    Dashboard
+                    Books
                 </h2>
             }
         >
-            <Head title="Dashboard" />
+            <Head title="Books" />
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 bg-white rounded-lg shadow">
                             <div className="flex justify-end mb-4">
-                                <button className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
+                                <Link href={route('add')} className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
                                     Add book
-                                </button>
+                                </Link>
                             </div>
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
@@ -59,6 +59,12 @@ const Dashboard = ({ auth }: PageProps) => {
                                         </th>
                                         <th
                                             scope="col"
+                                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                        >
+                                            {"Pages"}
+                                        </th>
+                                        <th
+                                            scope="col"
                                             className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                                         >
                                             {"Actions"}
@@ -81,13 +87,16 @@ const Dashboard = ({ auth }: PageProps) => {
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                     {book.isbn}
                                                 </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    {book.pages}
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <a
-                                                        href="#"
+                                                    <button
+                                                        onClick={() => handleBookSelected(book.id)}
                                                         className="text-blue-600 hover:text-blue-900"
                                                     >
                                                         {"Edit"}
-                                                    </a>
+                                                    </button>
                                                     <button
                                                         onClick={() => handleDeleteConfirmation(book.id)}
                                                         className="ml-2 text-red-600 hover:text-red-900"
@@ -100,7 +109,7 @@ const Dashboard = ({ auth }: PageProps) => {
                                     ) : (
                                         <tr>
                                             <td
-                                                colSpan={5}
+                                                colSpan={6}
                                                 className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium text-gray-500"
                                             >
                                                 No Data
@@ -170,4 +179,4 @@ const Dashboard = ({ auth }: PageProps) => {
     );
 };
 
-export default observer(Dashboard);
+export default observer(List);

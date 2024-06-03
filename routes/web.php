@@ -14,9 +14,17 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+Route::get('/books', function () {
+    return Inertia::render('Books/List');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/books/add', function () {
+    return Inertia::render('Books/Add');
+})->middleware(['auth', 'verified'])->name('add');
+
+Route::get('/books/edit/{id}', function ($id) {
+    return Inertia::render('Books/Edit', ['id' => $id]);
+})->middleware(['auth', 'verified'])->name('edit');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
