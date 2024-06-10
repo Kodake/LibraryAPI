@@ -3,24 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\BookResource;
+use App\Interfaces\IBookRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BookController extends Controller
 {
-    /**
-     * Search for books based on various criteria.
-     */
-    public function search(Request $request)
+    private IBookRepository $bookRepository;
+
+    public function __construc(IBookRepository $bookRepository)
     {
-        $query = $request->input('query');
-    
-        $books = Book::where('title', 'LIKE', "%{$query}%")
-                     ->orWhere('author', 'LIKE', "%{$query}%")
-                     ->orWhere('publication_date', 'LIKE', "%{$query}%")
-                     ->orWhere('pages', 'LIKE', "%{$query}%")
-                     ->paginate(10);
-    
-        return response()->json($books);
+        $this->bookRepository = $bookRepository;
     }
 
     /**
@@ -34,62 +29,74 @@ class BookController extends Controller
         $page = $request->query('page', $firstPage);
         $size = $request->query('size', $maxSize);
 
-        $books = Book::paginate($size, ['*'], 'page', $page);
+        $books = $this->bookRepository->paginate($size, $page);
 
-        return response()->json($books);
-    }
-
-    /**
-     * Store a newly created book in storage.
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'author' => 'required|string|max:255',
-            'isbn' => 'required|string|max:13|unique:books,isbn',
-            'publication_date' => 'required|date',
-            'pages' => 'required|integer|min:1',
-        ]);
-
-        $book = Book::create($request->all());
-
-        return response()->json($book, 201);
+        return ApiResponseHelper::sendResponse(StudentResource::collection($data), '', 200);
     }
 
     /**
      * Display the specified book.
      */
-    public function show(Book $book)
+    public function show(int $id)
     {
-        return $book;
+        $book = $this->bookRepository->getById($id);
+        return ApiResponseHelper::sendResponse(new BookResource($book), '', 200);
+    }
+
+    /**
+     * Store a newly created book in storage.
+     */
+    public function store(StoreBookRequest $request)
+    {
+        $data = [
+            'title' => $request->title,
+            'author' => $request->author,
+            'isbn' => $request->isbn,
+            'publication_date' => $request->publication_date,
+            'pages' => $request->pages,
+        ];
+
+        DB::beginTransaction();
+        try {
+            $book = $this->bookRepository->store($data);
+            DB::commit();
+            return ApiResponseHelper::sendResponse(new BookResource($book, 'Record created successful', 201));
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ApiResponseHelper::rolback($ex);
+        }
     }
 
     /**
      * Update the specified book in storage.
      */
-    public function update(Request $request, Book $book)
+    public function update(UpdateBookRequest $request, int $id)
     {
-        $request->validate([
-            'title' => 'sometimes|required|string|max:255',
-            'author' => 'sometimes|required|string|max:255',
-            'isbn' => 'sometimes|required|string|max:13|unique:books,isbn,' . $book->id,
-            'publication_date' => 'sometimes|required|date',
-            'pages' => 'sometimes|required|integer|min:1',
-        ]);
+        $data = [
+            'title' => $request->title,
+            'author' => $request->author,
+            'isbn' => $request->isbn,
+            'publication_date' => $request->publication_date,
+            'pages' => $request->pages,
+        ];
 
-        $book->update($request->all());
-
-        return response()->json($book);
+        DB::beginTransaction();
+        try {
+            $book = $this->bookRepository->update($data, $id);
+            DB::commit();
+            return ApiResponseHelper::sendResponse(new BookResource($book, 'Record updated successful', 200));
+        } catch (\Exception $ex) {
+            DB::rollback();
+            return ApiResponseHelper::rolback($ex);
+        }
     }
 
     /**
      * Remove the specified book from storage.
      */
-    public function destroy(Book $book)
+    public function destroy($id)
     {
-        $book->delete();
-
-        return response()->json(null, 204);
+        $this->bookRepository->delete($id);
+        return ApiResponseHelper::sendResponse(null, 'Record deleted successful');
     }
 }
