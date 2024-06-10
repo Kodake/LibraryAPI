@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Repositories;
+
 use App\Interfaces\IBookRepository;
 use App\Models\Book;
 
