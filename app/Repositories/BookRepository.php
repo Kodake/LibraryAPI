@@ -11,19 +11,23 @@ class BookRepository implements IBookRepository
         return Book::paginate($size, ['*'], 'page', $page);
     }
 
-    public function getById($id) {
+    public function getById($id)
+    {
         return Book::findOrFail($id);
     }
 
-    public function store(array $data) {
+    public function store(array $data)
+    {
         return Book::create($data);
     }
 
-    public function update(array $data, $id) {
+    public function update(array $data, $id)
+    {
         return Book::whereId($id)->update($data);
     }
 
-    public function delete($id) {
-        Book::destroy($id);
+    public function delete($id)
+    {
+        return Book::destroy($id);
     }
 }

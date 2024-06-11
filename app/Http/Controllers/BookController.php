@@ -28,7 +28,7 @@ class BookController extends Controller
     {
         $firstPage = 1;
         $maxSize = 5;
-        
+
         $page = $request->query('page', $firstPage);
         $size = $request->query('size', $maxSize);
 
@@ -40,7 +40,7 @@ class BookController extends Controller
     /**
      * Display the specified book.
      */
-    public function show(int $id)
+    public function show($id)
     {
         $book = $this->bookRepository->getById($id);
         return ApiResponseHelper::sendResponse(new BookResource($book), '', 200);
@@ -73,7 +73,7 @@ class BookController extends Controller
     /**
      * Update the specified book in storage.
      */
-    public function update(UpdateBookRequest $request, int $id)
+    public function update(UpdateBookRequest $request, $id)
     {
         $data = [
             'title' => $request->title,

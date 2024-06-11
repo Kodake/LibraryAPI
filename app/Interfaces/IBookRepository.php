@@ -4,7 +4,7 @@ namespace App\Interfaces;
 
 interface IBookRepository
 {
-    public function paginate(int $size, int $page);
+    public function paginate($size, $page);
     public function getById($id);
     public function store(array $data);
     public function update(array $data, $id);
