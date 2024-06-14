@@ -15,12 +15,12 @@ class BookResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this.id,
-            'title' => $this.title,
-            'author' => $this.author,
-            'isbn' => $this.isbn,
-            'publication_date' => $this.publication_date,
-            'pages' => $this.pages,
+            'id' => $this->id,
+            'title' => $this->title,
+            'author' => $this->author,
+            'isbn' => $this->isbn,
+            'publication_date' => $this->publication_date,
+            'pages' => $this->pages,
         ];
     }
 }

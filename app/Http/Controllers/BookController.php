@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Book;
 use App\Classes\ApiResponseHelper;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBookRequest;
@@ -16,7 +15,7 @@ class BookController extends Controller
 {
     private IBookRepository $bookRepository;
 
-    public function __construc(IBookRepository $bookRepository)
+    public function __construct(IBookRepository $bookRepository)
     {
         $this->bookRepository = $bookRepository;
     }
@@ -34,7 +33,8 @@ class BookController extends Controller
 
         $books = $this->bookRepository->paginate($size, $page);
 
-        return ApiResponseHelper::sendResponse(StudentResource::collection($data), '', 200);
+        // return ApiResponseHelper::sendResponse(BookResource::collection($books), '', 200);
+        return response()->json($books);
     }
 
     /**
@@ -66,7 +66,7 @@ class BookController extends Controller
             return ApiResponseHelper::sendResponse(new BookResource($book, 'Record created successful', 201));
         } catch (\Exception $ex) {
             DB::rollback();
-            return ApiResponseHelper::rolback($ex);
+            return ApiResponseHelper::rollback($ex);
         }
     }
 
@@ -90,7 +90,7 @@ class BookController extends Controller
             return ApiResponseHelper::sendResponse(new BookResource($book, 'Record updated successful', 200));
         } catch (\Exception $ex) {
             DB::rollback();
-            return ApiResponseHelper::rolback($ex);
+            return ApiResponseHelper::rollback($ex);
         }
     }
 
