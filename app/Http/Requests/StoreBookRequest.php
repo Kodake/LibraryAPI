@@ -32,14 +32,15 @@ class StoreBookRequest extends FormRequest
         ];
     }
 
-    public function failedValidation(Validator $validator) 
+    public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json(
             [
                 'succes' => false,
                 'message' => 'Validation errors',
                 'data' => $validator->errors()
-            ]
-            ));
+            ],
+            400
+        ));
     }
 }

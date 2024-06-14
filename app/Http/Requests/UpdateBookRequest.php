@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Book;
+use Illuminate\Validation\Rule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -23,23 +25,26 @@ class UpdateBookRequest extends FormRequest
      */
     public function rules(): array
     {
+        $bookId = $this->route('book');
+
         return [
-            'title' => 'required|string|max:255',
-            'author' => 'required|string|max:255',
-            'isbn' => 'required|string|max:13|unique:books,isbn',
-            'publication_date' => 'required|date',
-            'pages' => 'required|integer|min:1',
+            'title' => 'sometimes|required|string|max:255',
+            'author' => 'sometimes|required|string|max:255',
+            'isbn' => 'sometimes|required|string|max:13|unique:books,isbn,' .$bookId,
+            'publication_date' => 'sometimes|required|date',
+            'pages' => 'sometimes|required|integer|min:1',
         ];
     }
 
-    public function failedValidation(Validator $validator) 
+    public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json(
             [
                 'succes' => false,
                 'message' => 'Validation errors',
                 'data' => $validator->errors()
-            ]
-            ));
+            ],
+            400
+        ));
     }
 }

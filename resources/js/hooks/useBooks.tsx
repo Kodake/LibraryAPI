@@ -6,6 +6,7 @@ import { useForm, usePage } from "@inertiajs/react";
 
 const useBooks = () => {
     const { get } = useForm();
+    const { id } = usePage().props;
 
     const cargarListaPaginada = () => {
         useEffect(() => {
@@ -14,13 +15,11 @@ const useBooks = () => {
     };
 
     const buscarPorId = () => {
-        const { id } = usePage().props;
-
         useEffect(() => {
             if (id !== undefined) {
                 store.buscarPorId(Number(id));
             }
-        }, []);
+        }, [id]);
     };
 
     const handleInputBook = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +39,7 @@ const useBooks = () => {
         useEffect(() => {
             return () => {
                 store.limpiar();
-            }
+            };
         }, []);
     };
 

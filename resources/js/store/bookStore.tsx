@@ -100,7 +100,7 @@ class BookStore {
         await axios
             .get(url)
             .then((resp) => {
-                const data = resp.data;
+                const data = resp.data.data;
                 this.setBook(data);
 
                 runInAction(() => {
@@ -122,7 +122,7 @@ class BookStore {
             await this.listarPaginado(this.pageNumber, this.pageSize);
         } catch (error: any) {
             const validationError: Record<string, string[]> =
-                error.response.data.errors;
+                error.response.data.data;
 
             const errorMessages = Object.entries(validationError).map(
                 ([field, messages]) => (
@@ -149,7 +149,21 @@ class BookStore {
             this.limpiar();
             await this.listarPaginado(this.pageNumber, this.pageSize);
         } catch (error: any) {
-            useNotifications("Error", error.response.data, "error");
+            const validationError: Record<string, string[]> =
+                error.response.data.data;
+
+            const errorMessages = Object.entries(validationError).map(
+                ([field, messages]) => (
+                    <li key={field} className="border-0 text-start">
+                        {messages.join(", ")}
+                    </li>
+                )
+            );
+
+            const errorMessage = renderToString(<ul>{errorMessages}</ul>);
+
+            useNotifications("Validation error", errorMessage, "error");
+
             throw error;
         }
     }
