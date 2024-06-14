@@ -30,7 +30,7 @@ class UpdateBookRequest extends FormRequest
         return [
             'title' => 'sometimes|required|string|max:255',
             'author' => 'sometimes|required|string|max:255',
-            'isbn' => 'sometimes|required|string|max:13|unique:books,isbn,' .$bookId,
+            'isbn' => 'required|string|max:13|unique:books,isbn,' . $bookId,
             'publication_date' => 'sometimes|required|date',
             'pages' => 'sometimes|required|integer|min:1',
         ];

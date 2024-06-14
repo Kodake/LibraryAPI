@@ -73,7 +73,7 @@ class BookController extends Controller
     /**
      * Update the specified book in storage.
      */
-    public function update(UpdateBookRequest $request, $id)
+    public function update(UpdateBookRequest $request, string $id)
     {
         $data = [
             'title' => $request->title,
@@ -85,11 +85,11 @@ class BookController extends Controller
 
         DB::beginTransaction();
         try {
-            $book = $this->bookRepository->update($data, $id);
+            $this->bookRepository->update($data, $id);
             DB::commit();
-            return ApiResponseHelper::sendResponse(new BookResource($book, 'Record updated successful', 200));
+            return ApiResponseHelper::sendResponse(null, 'Record updated succesful', 200);
         } catch (\Exception $ex) {
-            DB::rollback();
+            DB::rollBack();
             return ApiResponseHelper::rollback($ex);
         }
     }
