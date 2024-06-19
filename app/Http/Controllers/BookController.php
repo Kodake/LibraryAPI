@@ -11,6 +11,15 @@ use App\Interfaces\IBookRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @OA\Info(
+ *      title="API Swagger",
+ *      version="1.0",
+ *      description="API CRUD Books"
+ * )
+ *
+ * @OA\Server(url="http://localhost:8000")
+ */
 class BookController extends Controller
 {
     private IBookRepository $bookRepository;
@@ -21,33 +30,127 @@ class BookController extends Controller
     }
 
     /**
-     * Display a listing of the books.
+     * @OA\Get(
+     *     path="/api/books",
+     *     tags={"Books"},
+     *     summary="Get paginated list of books",
+     *     description="Returns a paginated list of books",
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="size",
+     *         in="query",
+     *         description="Number of books per page",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="current_page", type="integer"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/BookResource")
+     *             ),
+     *             @OA\Property(property="first_page_url", type="string", format="url"),
+     *             @OA\Property(property="from", type="integer"),
+     *             @OA\Property(property="last_page", type="integer"),
+     *             @OA\Property(property="last_page_url", type="string", format="url"),
+     *             @OA\Property(
+     *                 property="links",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(property="url", type="string", nullable=true),
+     *                     @OA\Property(property="label", type="string"),
+     *                     @OA\Property(property="active", type="boolean")
+     *                 )
+     *             ),
+     *             @OA\Property(property="next_page_url", type="string", format="url", nullable=true),
+     *             @OA\Property(property="path", type="string", format="url"),
+     *             @OA\Property(property="per_page", type="integer"),
+     *             @OA\Property(property="prev_page_url", type="string", format="url", nullable=true),
+     *             @OA\Property(property="to", type="integer"),
+     *             @OA\Property(property="total", type="integer")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request"
+     *     )
+     * )
      */
     public function index(Request $request)
     {
         $firstPage = 1;
-        $maxSize = 5;
+        $maxSize = 10;
 
         $page = $request->query('page', $firstPage);
         $size = $request->query('size', $maxSize);
 
         $books = $this->bookRepository->paginate($size, $page);
 
-        // return ApiResponseHelper::sendResponse(BookResource::collection($books), '', 200);
         return response()->json($books);
     }
 
+
     /**
-     * Display the specified book.
+     * @OA\Get(
+     *     path="/api/books/{id}",
+     *     tags={"Books"},
+     *     summary="Get book information",
+     *     description="Get book details by ID",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(ref="#/components/schemas/BookResource")
+     *     )
+     * )
      */
-    public function show($id)
+    public function show(string $id)
     {
         $book = $this->bookRepository->getById($id);
         return ApiResponseHelper::sendResponse(new BookResource($book), '', 200);
     }
 
     /**
-     * Store a newly created book in storage.
+     * @OA\Post(
+     *     path="/api/books",
+     *     tags={"Books"},
+     *     summary="Create a new book",
+     *     description="Store new book details",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="title", type="string", description="Title of the book"),
+     *             @OA\Property(property="author", type="string", description="Author of the book"),
+     *             @OA\Property(property="isbn", type="string", description="ISBN of the book"),
+     *             @OA\Property(property="publication_date", type="string", format="date", description="Publication Date of the book"),
+     *             @OA\Property(property="pages", type="integer", description="Pages of the book")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Record created successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/BookResource")
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request"
+     *     )
+     * )
      */
     public function store(StoreBookRequest $request)
     {
@@ -63,7 +166,7 @@ class BookController extends Controller
         try {
             $book = $this->bookRepository->store($data);
             DB::commit();
-            return ApiResponseHelper::sendResponse(new BookResource($book, 'Record created successful', 201));
+            return ApiResponseHelper::sendResponse(new BookResource($book), 'Record created successfully', 201);
         } catch (\Exception $ex) {
             DB::rollback();
             return ApiResponseHelper::rollback($ex);
@@ -71,7 +174,40 @@ class BookController extends Controller
     }
 
     /**
-     * Update the specified book in storage.
+     * @OA\Put(
+     *     path="/api/books/{id}",
+     *     tags={"Books"},
+     *     summary="Update book information",
+     *     description="Update book details by ID",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="title", type="string", description="Title of the book"),
+     *             @OA\Property(property="author", type="string", description="Author of the book"),
+     *             @OA\Property(property="isbn", type="string", description="ISBN of the book"),
+     *             @OA\Property(property="publication_date", type="string", format="date", description="Publication Date of the book"),
+     *             @OA\Property(property="pages", type="integer", description="Pages of the book")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Record updated successfully"
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Resource not found"
+     *     )
+     * )
      */
     public function update(UpdateBookRequest $request, string $id)
     {
@@ -87,7 +223,7 @@ class BookController extends Controller
         try {
             $this->bookRepository->update($data, $id);
             DB::commit();
-            return ApiResponseHelper::sendResponse(null, 'Record updated succesful', 200);
+            return ApiResponseHelper::sendResponse(null, 'Record updated successfully', 200);
         } catch (\Exception $ex) {
             DB::rollBack();
             return ApiResponseHelper::rollback($ex);
@@ -95,7 +231,22 @@ class BookController extends Controller
     }
 
     /**
-     * Remove the specified book from storage.
+     * @OA\Delete(
+     *     path="/api/books/{id}",
+     *     tags={"Books"},
+     *     summary="Delete book record",
+     *     description="Delete book by ID",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Record deleted successfully"
+     *     )
+     * )
      */
     public function destroy($id)
     {
