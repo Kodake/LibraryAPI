@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
  *      description="API CRUD Books"
  * )
  *
- * @OA\Server(url="http://localhost:8000")
+ * @OA\Server(url="http://localhost:8040")
  */
 class BookController extends Controller
 {
